@@ -23,7 +23,6 @@ from queue import PriorityQueue
 ###############################################################################
 WIDTH = 800
 WIN = pygame.display.set_mode((WIDTH, WIDTH))
-pygame.display.set_caption("A* Path Finding Algorithm")
 
 # Color Values
 RED = (255, 0, 0)
@@ -37,6 +36,8 @@ ORANGE = (255, 165, 0)
 GREY = (128, 128, 128)
 TURQUOISE = (64, 224, 208)
 
+# Set the caption of the display window
+pygame.display.set_caption("A* Path Finding Algorithm")
 ###############################################################################
 #                               CLASSES                                       #
 ###############################################################################
@@ -117,9 +118,139 @@ class Node:
         pygame.draw.rect(win, self.color, (self.x, self.y, self.width, self.width))
         return
 
-    def update_neighbours(self.grid):
-        pass
+    def update_neighbours(self, grid):
+        self.neighbours = []
+        # Node down
+        if (self.row < self.total_rows - 1) and (not grid[self.row + 1][self.col].is_barrier()):
+            self.neighbours.append(grid[self.row + 1][self.col])
+        # Node up
+        if (self.row > 0) and (not grid[self.row - 1][self.col].is_barrier()):
+            self.neighbours.append(grid[self.row - 1][self.col])
+        # Node right
+        if (self.col < self.total_rows - 1) and (not grid[self.row][self.col + 1].is_barrier()):
+            self.neighbours.append(grid[self.row][self.col + 1])
+        # Node left
+        if (self.col > 0) and (not grid[self.row][self.col - 1].is_barrier()):
+            self.neighbours.append(grid[self.row][self.col - 1])
 
     def __lt__(self, other):
         # For now
         return False
+
+
+###############################################################################
+#                               FUNTIONS                                      #
+###############################################################################
+# The heuristic function used to calculate the f values between two nodes.
+# Here, we calculate the manhatten distance (absolute distance between x and y axis).
+def h(n1, n2):
+    x1, y1 = n1
+    x2, y2 = n2
+    return abs(x1-x2) + abs(y1-y2)
+
+def algorithm(draw, grid, start, end):
+    pass
+
+# Make a square grid with given rows and total width
+def make_grid(rows, width):
+    grid = []
+    # gap of each grid cube
+    gap = width // rows
+
+    for i in range(rows):
+        grid.append([])
+        for j in range(rows):
+            node = Node(i, j, gap, rows)
+            grid[i].append(node)
+
+    return grid
+
+def draw_grid(win, rows, width):
+    gap = width // rows
+
+    for i in range(rows):
+        pygame.draw.line(win, GREY, (0, i * gap), (width, i * gap))
+    for j in range(rows):
+        pygame.draw.line(win, GREY, (j * gap, 0), (j * gap, width))
+
+# Main drawing function
+def draw(win, grid, rows, width):
+    # Fill in the whole screen to erase previous frame
+    win.fill(WHITE)
+
+    # Fill in each node with its color
+    for row in grid:
+        for node in row:
+            node.draw(win)
+
+    # Draw the grid lines
+    draw_grid(win, rows, width)
+    pygame.display.update()
+
+# Function to take in input from cursor position
+def get_clicked_position(pos, rows, width):
+    gap = width // rows
+    x, y = pos
+
+    row = x // gap
+    col = y // gap
+
+    return row, col
+
+
+# Main function
+def main(win, width):
+    ROWS = 50
+    grid = make_grid(ROWS, width)
+
+    start = None
+    end = None
+
+    run = True
+    started = False
+
+    while run:
+        draw(win, grid, ROWS, width)
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                run = False
+
+            if started:
+                continue
+
+            # Left click
+            if pygame.mouse.get_pressed()[0]:
+                pos = pygame.mouse.get_pos()
+                row, col = get_clicked_position(pos, ROWS, width)
+                node = grid[row][col]
+                if not start and node != end:
+                    start = node
+                    start.make_start()
+                elif not end and node != start:
+                    end = node
+                    end.make_end()
+                elif node != end and node != start:
+                    node.make_barrier()
+
+            # Right click
+            elif pygame.mouse.get_pressed()[2]:
+                pos = pygame.mouse.get_pos()
+                row, col = get_clicked_position(pos, ROWS, width)
+                node = grid[row][col]
+                node.reset()
+                if node == start:
+                    start = None
+                if node == end:
+                    end = None
+
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_SPACE and not started:
+                    for row in grid:
+                        for node in row:
+                            node.update_neighbours()
+
+                    algorithm(lambda: draw(win, grid, ROWS, width), grid, start, end)
+
+    pygame.quit()
+
+main(WIN, WIDTH)
