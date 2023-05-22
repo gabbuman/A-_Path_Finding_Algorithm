@@ -1,1 +1,23 @@
-Hi I need to fill this up
+# Overview
+Using pygame to display a window with grid, allow start, end and block nodes in the grid. 
+
+The algorithm will find the most optimal path using A* algorithm.
+
+# Dependencies
+
+##Set up the virtual env, you should do this for all your projects!
+```
+python3 -m venv venv
+source venv/bin/activate
+```
+
+##Install the requirements!
+```
+pip install --upgrade pip
+pip install pygame
+```
+
+##Run the program
+```
+python a_star.py
+```
